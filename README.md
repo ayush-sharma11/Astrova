@@ -1,50 +1,38 @@
-# Welcome to your Expo app 👋
+# Astrova
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A minimal space exploration app built with React Native and Expo. Browse NASA's Astronomy Picture of the Day, track the ISS in real time, explore the solar system, and read the latest space news.
 
-## Get started
+## Screens
 
-1. Install dependencies
+- **Home** - NASA APOD with prev/next/random navigation and save to collection
+- **ISS Tracker** - Live ISS position on a dark map, updating every 5 seconds
+- **News** - Latest space news via Spaceflight News API
+- **Solar System** - All 8 planets with physical and orbital data
+- **Saved** - Your bookmarked APOD images, stored locally
 
-   ```bash
-   npm install
-   ```
+## Stack
 
-2. Start the app
+- [Expo](https://expo.dev) + [Expo Router](https://expo.github.io/router)
+- React Native
+- AsyncStorage for local persistence and APOD caching
+- NASA APOD API, wheretheiss.at, Spaceflight News API
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Getting Started
 
 ```bash
-npm run reset-project
+git clone https://github.com/ayush-sharma11/astrova
+cd astrova
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Create a `.env` file:
 
-## Learn more
+```
+EXPO_PUBLIC_NASA_KEY=your_nasa_api_key_here
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Get a free NASA API key at [api.nasa.gov](https://api.nasa.gov).
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+npm start
+```
