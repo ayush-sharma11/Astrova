@@ -12,11 +12,11 @@ A minimal space exploration app built with React Native and Expo. Browse NASA's 
 
 ## Screenshots
 
-![Home Screen](./assets/screenshots/home.png)
-![ISS Screen](./assets/screenshots/iss.png)
-![News Screen](./assets/screenshots/news.png)
-![Solar System Screen](./assets/screenshots/solar.png)
-![Saved Screen](./assets/screenshots/saved.png)
+![Home Screen](./assets/screenshots/home.jpg)
+![ISS Screen](./assets/screenshots/iss.jpg)
+![News Screen](./assets/screenshots/news.jpg)
+![Solar System Screen](./assets/screenshots/solar.jpg)
+![Saved Screen](./assets/screenshots/saved.jpg)
 
 ## Stack
 
