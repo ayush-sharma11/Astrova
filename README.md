@@ -10,6 +10,14 @@ A minimal space exploration app built with React Native and Expo. Browse NASA's 
 - **Solar System** - All 8 planets with physical and orbital data
 - **Saved** - Your bookmarked APOD images, stored locally
 
+## Screenshots
+
+![Home Screen](./assets/screenshots/home.png)
+![ISS Screen](./assets/screenshots/iss.png)
+![News Screen](./assets/screenshots/news.png)
+![Solar System Screen](./assets/screenshots/solar.png)
+![Saved Screen](./assets/screenshots/saved.png)
+
 ## Stack
 
 - [Expo](https://expo.dev) + [Expo Router](https://expo.github.io/router)
@@ -36,3 +44,7 @@ Get a free NASA API key at [api.nasa.gov](https://api.nasa.gov).
 ```bash
 npm start
 ```
+
+## Download
+
+[Download APK](https://github.com/ayush-sharma11/astrova/releases/latest)
