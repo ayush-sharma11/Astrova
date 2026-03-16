@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
+    Dimensions,
     FlatList,
+    Image,
     Modal,
     ScrollView,
     StyleSheet,
@@ -11,6 +13,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { theme } from "../../constants/theme";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 interface Planet {
     name: string;
@@ -209,6 +213,19 @@ const PLANETS: Planet[] = [
     },
 ];
 
+const PLANET_IMAGES: Record<string, string> = {
+    Mercury: "https://images-assets.nasa.gov/image/PIA15160/PIA15160~orig.jpg",
+    Venus: "https://images-assets.nasa.gov/image/PIA00104/PIA00104~orig.jpg",
+    Earth: "https://images-assets.nasa.gov/image/as17-148-22727/as17-148-22727~orig.jpg",
+    Mars: "https://images-assets.nasa.gov/image/PIA00407/PIA00407~orig.jpg",
+    Jupiter: "https://images-assets.nasa.gov/image/PIA21775/PIA21775~orig.jpg",
+    Saturn: "https://images-assets.nasa.gov/image/PIA06193/PIA06193~orig.jpg",
+    Uranus: "https://images-assets.nasa.gov/image/PIA18182/PIA18182~orig.jpg",
+    Neptune: "https://images-assets.nasa.gov/image/PIA01492/PIA01492~orig.jpg",
+};
+const MAX_RADIUS = Math.max(...PLANETS.map((p) => p.radius));
+const MAX_DISTANCE = Math.max(...PLANETS.map((p) => p.distanceFromSun));
+
 function kelvinToCelsius(k: number) {
     return (k - 273.15).toFixed(0);
 }
@@ -219,6 +236,382 @@ function StatRow({ label, value }: { label: string; value: string }) {
             <Text style={styles.statRowLabel}>{label}</Text>
             <Text style={styles.statRowValue}>{value}</Text>
         </View>
+    );
+}
+
+function PlanetImage({
+    planet,
+    size,
+    style,
+}: {
+    planet: Planet;
+    size: number;
+    style?: any;
+}) {
+    const [imgError, setImgError] = useState(false);
+    const uri = PLANET_IMAGES[planet.name];
+    if (imgError || !uri) {
+        return (
+            <View
+                style={[
+                    {
+                        width: size,
+                        height: size,
+                        borderRadius: size / 2,
+                        backgroundColor: planet.color,
+                    },
+                    style,
+                ]}
+            />
+        );
+    }
+    return (
+        <Image
+            source={{ uri }}
+            style={[
+                { width: size, height: size, borderRadius: size / 2 },
+                style,
+            ]}
+            resizeMode="cover"
+            onError={() => setImgError(true)}
+        />
+    );
+}
+
+function SizeComparisonModal({
+    planets,
+    onClose,
+}: {
+    planets: Planet[];
+    onClose: () => void;
+}) {
+    const insets = useSafeAreaInsets();
+    const [planetA, setPlanetA] = useState<Planet>(planets[2]);
+    const [planetB, setPlanetB] = useState<Planet>(planets[4]);
+    const [selecting, setSelecting] = useState<"A" | "B" | null>(null);
+
+    const maxR = Math.max(planetA.radius, planetB.radius);
+    const MAX_DISPLAY = 120;
+
+    const sizeA = Math.max(20, (planetA.radius / maxR) * MAX_DISPLAY);
+    const sizeB = Math.max(20, (planetB.radius / maxR) * MAX_DISPLAY);
+
+    return (
+        <Modal
+            visible
+            animationType="slide"
+            presentationStyle="pageSheet"
+            onRequestClose={onClose}
+        >
+            <View
+                style={[styles.modalContainer, { paddingTop: insets.top + 8 }]}
+            >
+                <View style={styles.modalHeader}>
+                    <Text style={styles.modalHeaderTitle}>Size Comparison</Text>
+                    <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+                        <Ionicons
+                            name="close"
+                            size={20}
+                            color={theme.colors.textSecondary}
+                        />
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.compareContainer}>
+                    <View style={styles.comparePlanet}>
+                        <View style={styles.compareSphere}>
+                            <PlanetImage
+                                planet={planetA}
+                                size={sizeA}
+                                style={{
+                                    shadowColor: planetA.color,
+                                    shadowOpacity: 0.6,
+                                    shadowRadius: 12,
+                                    shadowOffset: { width: 0, height: 0 },
+                                }}
+                            />
+                        </View>
+                        <Text style={styles.compareName}>{planetA.name}</Text>
+                        <Text style={styles.compareRadius}>
+                            {planetA.radius.toLocaleString()} km
+                        </Text>
+                        <TouchableOpacity
+                            style={styles.changeBtn}
+                            onPress={() => setSelecting("A")}
+                        >
+                            <Text style={styles.changeBtnText}>Change</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.compareVs}>
+                        <Text style={styles.compareVsText}>vs</Text>
+                        {planetA.radius !== planetB.radius && (
+                            <Text style={styles.compareRatio}>
+                                {(
+                                    Math.max(planetA.radius, planetB.radius) /
+                                    Math.min(planetA.radius, planetB.radius)
+                                ).toFixed(1)}
+                                × larger
+                            </Text>
+                        )}
+                    </View>
+
+                    <View style={styles.comparePlanet}>
+                        <View style={styles.compareSphere}>
+                            <PlanetImage
+                                planet={planetB}
+                                size={sizeB}
+                                style={{
+                                    shadowColor: planetB.color,
+                                    shadowOpacity: 0.6,
+                                    shadowRadius: 12,
+                                    shadowOffset: { width: 0, height: 0 },
+                                }}
+                            />
+                        </View>
+                        <Text style={styles.compareName}>{planetB.name}</Text>
+                        <Text style={styles.compareRadius}>
+                            {planetB.radius.toLocaleString()} km
+                        </Text>
+                        <TouchableOpacity
+                            style={styles.changeBtn}
+                            onPress={() => setSelecting("B")}
+                        >
+                            <Text style={styles.changeBtnText}>Change</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {selecting && (
+                    <View style={styles.selectorContainer}>
+                        <Text style={styles.selectorTitle}>Select planet</Text>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={{
+                                gap: 10,
+                                paddingHorizontal: 16,
+                            }}
+                        >
+                            {planets.map((p) => (
+                                <TouchableOpacity
+                                    key={p.name}
+                                    style={[
+                                        styles.selectorPill,
+                                        (selecting === "A" ? planetA : planetB)
+                                            .name === p.name &&
+                                            styles.selectorPillActive,
+                                    ]}
+                                    onPress={() => {
+                                        if (selecting === "A") setPlanetA(p);
+                                        else setPlanetB(p);
+                                        setSelecting(null);
+                                    }}
+                                >
+                                    <PlanetImage planet={p} size={24} />
+                                    <Text style={styles.selectorPillText}>
+                                        {p.name}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                )}
+            </View>
+        </Modal>
+    );
+}
+
+function OrbitModal({
+    planets,
+    onClose,
+}: {
+    planets: Planet[];
+    onClose: () => void;
+}) {
+    const insets = useSafeAreaInsets();
+    const [selected, setSelected] = useState<Planet | null>(null);
+    const size = SCREEN_WIDTH - 32;
+    const center = size / 2;
+    const SUN_R = 14;
+    const MIN_ORBIT_R = 20;
+    const MAX_ORBIT_R = center - 20;
+
+    const logMin = Math.log(PLANETS[0].distanceFromSun);
+    const logMax = Math.log(MAX_DISTANCE);
+
+    function orbitR(dist: number) {
+        return (
+            MIN_ORBIT_R +
+            ((Math.log(dist) - logMin) / (logMax - logMin)) *
+                (MAX_ORBIT_R - MIN_ORBIT_R)
+        );
+    }
+
+    function planetDisplaySize(radius: number) {
+        return Math.max(6, Math.min(18, 6 + (radius / MAX_RADIUS) * 14));
+    }
+
+    const angles = [0, 45, 90, 135, 180, 225, 270, 315];
+
+    return (
+        <Modal
+            visible
+            animationType="slide"
+            presentationStyle="pageSheet"
+            onRequestClose={onClose}
+        >
+            <View
+                style={[styles.modalContainer, { paddingTop: insets.top + 8 }]}
+            >
+                <View style={styles.modalHeader}>
+                    <Text style={styles.modalHeaderTitle}>Orbital Map</Text>
+                    <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+                        <Ionicons
+                            name="close"
+                            size={20}
+                            color={theme.colors.textSecondary}
+                        />
+                    </TouchableOpacity>
+                </View>
+
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 60 }}
+                >
+                    <Text style={styles.orbitNote}>
+                        Distances are logarithmic. Tap a planet to see details.
+                    </Text>
+
+                    <View
+                        style={[
+                            styles.orbitCanvas,
+                            { width: size, height: size },
+                        ]}
+                    >
+                        {planets.map((p, i) => {
+                            const r = orbitR(p.distanceFromSun);
+                            return (
+                                <View
+                                    key={p.name + "-orbit"}
+                                    style={{
+                                        position: "absolute",
+                                        width: r * 2,
+                                        height: r * 2,
+                                        borderRadius: r,
+                                        borderWidth: 0.5,
+                                        borderColor: "rgba(255,255,255,0.08)",
+                                        left: center - r,
+                                        top: center - r,
+                                    }}
+                                />
+                            );
+                        })}
+
+                        <View
+                            style={[
+                                styles.sun,
+                                {
+                                    left: center - SUN_R,
+                                    top: center - SUN_R,
+                                    width: SUN_R * 2,
+                                    height: SUN_R * 2,
+                                    borderRadius: SUN_R,
+                                },
+                            ]}
+                        />
+
+                        {planets.map((p, i) => {
+                            const r = orbitR(p.distanceFromSun);
+                            const angle = (angles[i] * Math.PI) / 180;
+                            const ps = planetDisplaySize(p.radius);
+                            const x = center + r * Math.cos(angle) - ps / 2;
+                            const y = center + r * Math.sin(angle) - ps / 2;
+                            const isSelected = selected?.name === p.name;
+                            return (
+                                <TouchableOpacity
+                                    key={p.name}
+                                    style={{
+                                        position: "absolute",
+                                        left: x,
+                                        top: y,
+                                    }}
+                                    onPress={() =>
+                                        setSelected(isSelected ? null : p)
+                                    }
+                                    hitSlop={{
+                                        top: 10,
+                                        bottom: 10,
+                                        left: 10,
+                                        right: 10,
+                                    }}
+                                >
+                                    <PlanetImage
+                                        planet={p}
+                                        size={ps}
+                                        style={
+                                            isSelected
+                                                ? {
+                                                      borderWidth: 1.5,
+                                                      borderColor:
+                                                          theme.colors.accent,
+                                                  }
+                                                : undefined
+                                        }
+                                    />
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+
+                    {selected && (
+                        <View style={styles.orbitDetail}>
+                            <PlanetImage
+                                planet={selected}
+                                size={48}
+                                style={{
+                                    shadowColor: selected.color,
+                                    shadowOpacity: 0.5,
+                                    shadowRadius: 10,
+                                    shadowOffset: { width: 0, height: 0 },
+                                }}
+                            />
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.orbitDetailName}>
+                                    {selected.name}
+                                </Text>
+                                <Text style={styles.orbitDetailDist}>
+                                    {selected.distanceFromSun.toLocaleString()}{" "}
+                                    million km from Sun
+                                </Text>
+                                <Text style={styles.orbitDetailOrbit}>
+                                    {selected.orbitDays.toLocaleString()} day
+                                    orbit
+                                </Text>
+                            </View>
+                            <TouchableOpacity onPress={() => setSelected(null)}>
+                                <Ionicons
+                                    name="close-circle"
+                                    size={20}
+                                    color={theme.colors.textTertiary}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                    )}
+
+                    <View style={styles.orbitLegend}>
+                        {planets.map((p) => (
+                            <View key={p.name} style={styles.orbitLegendItem}>
+                                <PlanetImage planet={p} size={14} />
+                                <Text style={styles.orbitLegendText}>
+                                    {p.name}
+                                </Text>
+                            </View>
+                        ))}
+                    </View>
+                </ScrollView>
+            </View>
+        </Modal>
     );
 }
 
@@ -257,14 +650,16 @@ function PlanetModal({
                     contentContainerStyle={{ paddingBottom: 60 }}
                 >
                     <View style={styles.planetHero}>
-                        <View
-                            style={[
-                                styles.planetCircleLarge,
-                                {
-                                    backgroundColor: planet.color,
-                                    shadowColor: planet.color,
-                                },
-                            ]}
+                        <PlanetImage
+                            planet={planet}
+                            size={120}
+                            style={{
+                                shadowColor: planet.color,
+                                shadowOpacity: 0.7,
+                                shadowRadius: 30,
+                                shadowOffset: { width: 0, height: 0 },
+                                elevation: 12,
+                            }}
                         />
                         <Text style={styles.modalName}>{planet.name}</Text>
                         <Text style={styles.modalSub}>
@@ -358,12 +753,38 @@ function PlanetModal({
 export default function SolarScreen() {
     const insets = useSafeAreaInsets();
     const [selected, setSelected] = useState<Planet | null>(null);
+    const [showCompare, setShowCompare] = useState(false);
+    const [showOrbit, setShowOrbit] = useState(false);
 
     return (
         <View style={{ flex: 1, backgroundColor: theme.colors.bg }}>
             <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-                <Text style={styles.headerSub}>OUR NEIGHBOURHOOD</Text>
-                <Text style={styles.headerTitle}>Solar System</Text>
+                <View>
+                    <Text style={styles.headerSub}>OUR NEIGHBOURHOOD</Text>
+                    <Text style={styles.headerTitle}>Solar System</Text>
+                </View>
+                <View style={styles.headerActions}>
+                    <TouchableOpacity
+                        style={styles.headerBtn}
+                        onPress={() => setShowCompare(true)}
+                    >
+                        <Ionicons
+                            name="resize-outline"
+                            size={16}
+                            color={theme.colors.accent}
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.headerBtn}
+                        onPress={() => setShowOrbit(true)}
+                    >
+                        <Ionicons
+                            name="planet-outline"
+                            size={16}
+                            color={theme.colors.accent}
+                        />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <FlatList
@@ -390,14 +811,16 @@ export default function SolarScreen() {
                         activeOpacity={0.7}
                         onPress={() => setSelected(item)}
                     >
-                        <View
-                            style={[
-                                styles.planetCircle,
-                                {
-                                    backgroundColor: item.color,
-                                    shadowColor: item.color,
-                                },
-                            ]}
+                        <PlanetImage
+                            planet={item}
+                            size={44}
+                            style={{
+                                shadowColor: item.color,
+                                shadowOpacity: 0.5,
+                                shadowRadius: 8,
+                                shadowOffset: { width: 0, height: 0 },
+                                elevation: 6,
+                            }}
                         />
                         <View style={styles.planetInfo}>
                             <Text style={styles.planetName}>{item.name}</Text>
@@ -432,12 +855,27 @@ export default function SolarScreen() {
                     onClose={() => setSelected(null)}
                 />
             )}
+            {showCompare && (
+                <SizeComparisonModal
+                    planets={PLANETS}
+                    onClose={() => setShowCompare(false)}
+                />
+            )}
+            {showOrbit && (
+                <OrbitModal
+                    planets={PLANETS}
+                    onClose={() => setShowOrbit(false)}
+                />
+            )}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     header: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "flex-end",
         paddingHorizontal: 16,
         paddingBottom: 16,
         borderBottomWidth: 0.5,
@@ -456,20 +894,22 @@ const styles = StyleSheet.create({
         letterSpacing: -0.5,
         marginTop: 2,
     },
+    headerActions: { flexDirection: "row", gap: 8, alignItems: "center" },
+    headerBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: theme.colors.accentDim,
+        borderWidth: 0.5,
+        borderColor: theme.colors.accentBorder,
+        alignItems: "center",
+        justifyContent: "center",
+    },
     planetRow: {
         flexDirection: "row",
         alignItems: "center",
-        paddingVertical: 14,
+        paddingVertical: 12,
         gap: 14,
-    },
-    planetCircle: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 10,
-        elevation: 6,
     },
     planetInfo: { flex: 1, gap: 3 },
     planetName: {
@@ -488,9 +928,16 @@ const styles = StyleSheet.create({
     modalContainer: { flex: 1, backgroundColor: theme.colors.bg },
     modalHeader: {
         flexDirection: "row",
-        justifyContent: "flex-end",
+        justifyContent: "space-between",
+        alignItems: "center",
         paddingHorizontal: 16,
-        paddingBottom: 8,
+        paddingBottom: 12,
+    },
+    modalHeaderTitle: {
+        color: theme.colors.textPrimary,
+        fontSize: 18,
+        fontWeight: "700",
+        letterSpacing: -0.3,
     },
     closeBtn: {
         width: 32,
@@ -503,15 +950,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     planetHero: { alignItems: "center", paddingVertical: 32, gap: 12 },
-    planetCircleLarge: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.7,
-        shadowRadius: 30,
-        elevation: 12,
-    },
     modalName: {
         color: theme.colors.textPrimary,
         fontSize: 30,
@@ -594,4 +1032,140 @@ const styles = StyleSheet.create({
         fontSize: 13,
         lineHeight: 20,
     },
+    compareContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 16,
+        paddingVertical: 32,
+        gap: 8,
+    },
+    comparePlanet: { flex: 1, alignItems: "center", gap: 8 },
+    compareSphere: {
+        height: 140,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    compareName: {
+        color: theme.colors.textPrimary,
+        fontSize: 15,
+        fontWeight: "600",
+    },
+    compareRadius: { color: theme.colors.textTertiary, fontSize: 12 },
+    changeBtn: {
+        paddingHorizontal: 14,
+        paddingVertical: 6,
+        borderRadius: theme.radius.full,
+        backgroundColor: theme.colors.bgElevated,
+        borderWidth: 0.5,
+        borderColor: theme.colors.border,
+    },
+    changeBtnText: {
+        color: theme.colors.textSecondary,
+        fontSize: 12,
+        fontWeight: "500",
+    },
+    compareVs: { alignItems: "center", gap: 4, width: 50 },
+    compareVsText: {
+        color: theme.colors.textTertiary,
+        fontSize: 16,
+        fontWeight: "600",
+    },
+    compareRatio: {
+        color: theme.colors.accent,
+        fontSize: 11,
+        fontWeight: "600",
+        textAlign: "center",
+    },
+    selectorContainer: {
+        borderTopWidth: 0.5,
+        borderTopColor: theme.colors.border,
+        paddingTop: 16,
+        paddingBottom: 16,
+    },
+    selectorTitle: {
+        color: theme.colors.textTertiary,
+        fontSize: 11,
+        letterSpacing: 1.2,
+        fontWeight: "600",
+        textTransform: "uppercase",
+        paddingHorizontal: 16,
+        marginBottom: 12,
+    },
+    selectorPill: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        borderRadius: theme.radius.full,
+        backgroundColor: theme.colors.bgCard,
+        borderWidth: 0.5,
+        borderColor: theme.colors.border,
+    },
+    selectorPillActive: {
+        backgroundColor: theme.colors.accentDim,
+        borderColor: theme.colors.accentBorder,
+    },
+    selectorPillText: {
+        color: theme.colors.textSecondary,
+        fontSize: 13,
+        fontWeight: "500",
+    },
+    orbitCanvas: {
+        alignSelf: "center",
+        position: "relative",
+        marginVertical: 16,
+    },
+    sun: {
+        position: "absolute",
+        backgroundColor: "#FDB813",
+        shadowColor: "#FDB813",
+        shadowOpacity: 0.8,
+        shadowRadius: 16,
+        shadowOffset: { width: 0, height: 0 },
+        elevation: 8,
+    },
+    orbitNote: {
+        color: theme.colors.textTertiary,
+        fontSize: 12,
+        textAlign: "center",
+        paddingHorizontal: 32,
+        marginTop: 8,
+    },
+    orbitDetail: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 14,
+        marginHorizontal: 16,
+        marginTop: 8,
+        backgroundColor: theme.colors.bgCard,
+        borderRadius: theme.radius.lg,
+        borderWidth: 0.5,
+        borderColor: theme.colors.accentBorder,
+        padding: 14,
+    },
+    orbitDetailName: {
+        color: theme.colors.textPrimary,
+        fontSize: 16,
+        fontWeight: "700",
+    },
+    orbitDetailDist: {
+        color: theme.colors.textSecondary,
+        fontSize: 12,
+        marginTop: 2,
+    },
+    orbitDetailOrbit: {
+        color: theme.colors.textTertiary,
+        fontSize: 12,
+        marginTop: 1,
+    },
+    orbitLegend: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 10,
+        paddingHorizontal: 16,
+        marginTop: 16,
+    },
+    orbitLegendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+    orbitLegendText: { color: theme.colors.textTertiary, fontSize: 12 },
 });

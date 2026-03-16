@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { theme } from "../../constants/theme";
+import { cacheNews, getCachedNews } from "../../utils/storage";
 
 const NEWS_API =
     "https://api.spaceflightnewsapi.net/v4/articles?limit=20&ordering=-published_at";
@@ -96,6 +97,14 @@ export default function NewsScreen() {
     const [error, setError] = useState(false);
 
     const fetchNews = useCallback(async (isRefresh = false) => {
+        if (!isRefresh) {
+            const cached = await getCachedNews();
+            if (cached) {
+                setArticles(cached);
+                setLoading(false);
+                return;
+            }
+        }
         if (isRefresh) setRefreshing(true);
         else setLoading(true);
         setError(false);
@@ -103,7 +112,9 @@ export default function NewsScreen() {
             const res = await fetch(NEWS_API);
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
-            setArticles(data.results ?? []);
+            const articles = data.results ?? [];
+            setArticles(articles);
+            await cacheNews(articles);
         } catch (e) {
             if (__DEV__) console.error("[News fetch error]", e);
             setError(true);

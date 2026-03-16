@@ -1,9 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { APOD, CachedEntry } from "../types/apod";
-
 const SAVED_KEY = "astrova_saved_apods";
-const APOD_CACHE_KEY = "astrova_apod_cache";
 
 export interface SavedAPOD {
     title: string;
@@ -55,27 +52,29 @@ export async function isAPODSaved(date: string): Promise<boolean> {
     }
 }
 
-const TODAY_TTL = 60 * 60 * 1000;
+const NEWS_CACHE_KEY = "astrova_news_cache";
+const NEWS_TTL = 15 * 60 * 1000;
 
-export async function getCachedAPOD(date: string): Promise<APOD | null> {
+interface NewsCacheEntry {
+    articles: any[];
+    cachedAt: number;
+}
+
+export async function getCachedNews(): Promise<any[] | null> {
     try {
-        const raw = await AsyncStorage.getItem(`${APOD_CACHE_KEY}:${date}`);
+        const raw = await AsyncStorage.getItem(NEWS_CACHE_KEY);
         if (!raw) return null;
-        const entry: CachedEntry = JSON.parse(raw);
-        const isToday = date === new Date().toISOString().split("T")[0];
-        if (isToday && Date.now() - entry.cachedAt > TODAY_TTL) return null;
-        return entry.data;
+        const entry: NewsCacheEntry = JSON.parse(raw);
+        if (Date.now() - entry.cachedAt > NEWS_TTL) return null;
+        return entry.articles;
     } catch {
         return null;
     }
 }
 
-export async function cacheAPOD(apod: APOD): Promise<void> {
+export async function cacheNews(articles: any[]): Promise<void> {
     try {
-        const entry: CachedEntry = { data: apod, cachedAt: Date.now() };
-        await AsyncStorage.setItem(
-            `${APOD_CACHE_KEY}:${apod.date}`,
-            JSON.stringify(entry),
-        );
+        const entry: NewsCacheEntry = { articles, cachedAt: Date.now() };
+        await AsyncStorage.setItem(NEWS_CACHE_KEY, JSON.stringify(entry));
     } catch {}
 }
