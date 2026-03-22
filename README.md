@@ -18,6 +18,9 @@ A minimal space exploration app built with React Native and Expo. Browse NASA's 
   <img src="./assets/screenshots/news.jpg" width="18%" />
   <img src="./assets/screenshots/solar.jpg" width="18%" />
   <img src="./assets/screenshots/saved.jpg" width="18%" />
+  <img src="./assets/screenshots/orbital-map.jpg" width="18%" />
+  <img src="./assets/screenshots/size-comparision.jpg" width="18%" />
+  <img src="./assets/screenshots/planet-info.jpg" width="18%" />
 </p>
 
 ## Stack
