@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { theme } from "../constants/theme";
 
 const TABS = [
@@ -15,8 +16,15 @@ export default function FloatingTabBar({
     state,
     navigation,
 }: BottomTabBarProps) {
+    const insets = useSafeAreaInsets();
+
     return (
-        <View style={styles.wrapper}>
+        <View
+            style={[
+                styles.wrapper,
+                { bottom: (Platform.OS === "ios" ? 32 : 20) + insets.bottom },
+            ]}
+        >
             <View style={styles.container}>
                 {state.routes.map((route, index) => {
                     const isFocused = state.index === index;
